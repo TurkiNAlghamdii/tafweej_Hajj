@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 71, 85, 105;
+  --background-rgb: 248, 250, 252;
+  --card-bg: 255, 255, 255;
+  --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --border-color: 226, 232, 240;
+  --hover-bg: 241, 245, 249;
+}
+
+.dark {
+  --foreground-rgb: 248, 250, 252;
+  --background-rgb: 17, 24, 39;
+  --card-bg: 31, 41, 55;
+  --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  --border-color: 55, 65, 81;
+  --hover-bg: 55, 65, 81;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-all duration-200 shadow-sm;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary/90 shadow-md hover:shadow-lg;
+  }
+  
+  .btn-outline {
+    @apply border border-slate-200 dark:border-gray-700 hover:bg-slate-50 dark:hover:bg-gray-700 text-slate-700 dark:text-slate-200;
+  }
+  
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 dark:shadow-gray-900 border border-slate-100 dark:border-gray-700 transition-all duration-200 hover:shadow-md;
+  }
+  
+  .alert {
+    @apply p-4 rounded-md mb-4 border;
+  }
+  
+  .alert-info {
+    @apply bg-info/5 border-info/20 text-info dark:bg-info/10 dark:border-info/30;
+  }
+  
+  .alert-warning {
+    @apply bg-warning/5 border-warning/20 text-warning dark:bg-warning/10 dark:border-warning/30;
+  }
+  
+  .alert-danger {
+    @apply bg-danger/5 border-danger/20 text-danger dark:bg-danger/10 dark:border-danger/30;
+  }
+
+  .input-field {
+    @apply w-full rounded-md border border-slate-200 dark:border-gray-700 px-4 py-2 bg-white dark:bg-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50;
+  }
+
+  .select-field {
+    @apply input-field appearance-none bg-no-repeat bg-right pr-10;
+  }
+
+  .nav-link {
+    @apply text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-primary-dark transition-colors;
+  }
+} 
