@@ -1,10 +1,4 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/alerts/page": "app/alerts/page.js",
-  "/api/safety-alerts/route": "app/api/safety-alerts/route.js",
   "/api/crowd-density/route": "app/api/crowd-density/route.js",
-  "/page": "app/page.js",
-  "/map/page": "app/map/page.js",
-  "/api/routes/route": "app/api/routes/route.js",
-  "/routes/page": "app/routes/page.js"
+  "/api/routes/route": "app/api/routes/route.js"
 }

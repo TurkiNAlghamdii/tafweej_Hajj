@@ -1,16 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'your-supabase-url';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-supabase-anon-key';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvd2ttc3Z0cXJzeWJsb2JzYXp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0Mzc2NTgsImV4cCI6MjA2MTAxMzY1OH0.EBQ3Pn9yvN2L6G5HTe5c10bGOF8xs28jQ-plE1g8HOc';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 // Client for client-side and authenticated requests
+// Ensure we have a valid key
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Service role client for server-side operations (only used in server components or API routes)
-// WARNING: This client has admin privileges and should never be used in client-side code
-export const supabaseAdmin = supabaseServiceKey 
+// Only create if we have a valid service key
+export const supabaseAdmin = supabaseServiceKey && supabaseServiceKey.length > 0
   ? createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
