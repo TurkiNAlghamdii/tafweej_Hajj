@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['images.unsplash.com'],
+    domains: ['images.unsplash.com', 'images.pexels.com'],
   },
   webpack: (config) => {
     // Fixes npm packages that depend on `fs` module

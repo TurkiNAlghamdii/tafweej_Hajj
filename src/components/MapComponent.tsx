@@ -13,13 +13,20 @@ mapboxgl.accessToken = 'pk.eyJ1IjoidHVya2luYWxnaGFtZGkiLCJhIjoiY205dWN3YngyMDc0Y
 const MECCA_CENTER: [number, number] = [39.826174, 21.422487];
 
 // Mock data for prototype purposes
-const MOCK_CROWD_DATA: CrowdDensity[] = [
+export const MOCK_CROWD_DATA: CrowdDensity[] = [
   {
     id: 1,
     location_name: 'Masjid al-Haram',
     coordinates: { lng: 39.826174, lat: 21.422487 },
     density_level: 'high',
     updated_at: new Date().toISOString(),
+    crowd_size: 450000,
+    occupancy_percentage: '85',
+    meta_data: {
+      density: '4.2',
+      capacity: 550000,
+      sections: []
+    }
   },
   {
     id: 2,
@@ -27,6 +34,13 @@ const MOCK_CROWD_DATA: CrowdDensity[] = [
     coordinates: { lng: 39.892966, lat: 21.413249 },
     density_level: 'medium',
     updated_at: new Date().toISOString(),
+    crowd_size: 350000,
+    occupancy_percentage: '65',
+    meta_data: {
+      density: '3.1',
+      capacity: 540000,
+      sections: []
+    }
   },
   {
     id: 3,
@@ -34,6 +48,13 @@ const MOCK_CROWD_DATA: CrowdDensity[] = [
     coordinates: { lng: 39.873485, lat: 21.42365 },
     density_level: 'critical',
     updated_at: new Date().toISOString(),
+    crowd_size: 200000,
+    occupancy_percentage: '95',
+    meta_data: {
+      density: '6.8',
+      capacity: 210000,
+      sections: []
+    }
   },
   {
     id: 4,
@@ -41,6 +62,13 @@ const MOCK_CROWD_DATA: CrowdDensity[] = [
     coordinates: { lng: 39.984687, lat: 21.355461 },
     density_level: 'low',
     updated_at: new Date().toISOString(),
+    crowd_size: 300000,
+    occupancy_percentage: '40',
+    meta_data: {
+      density: '1.8',
+      capacity: 750000,
+      sections: []
+    }
   },
   {
     id: 5,
@@ -48,6 +76,13 @@ const MOCK_CROWD_DATA: CrowdDensity[] = [
     coordinates: { lng: 39.936322, lat: 21.383082 },
     density_level: 'medium',
     updated_at: new Date().toISOString(),
+    crowd_size: 320000,
+    occupancy_percentage: '60',
+    meta_data: {
+      density: '2.9',
+      capacity: 530000,
+      sections: []
+    }
   },
   // Additional data points for a more detailed map
   {
@@ -56,6 +91,13 @@ const MOCK_CROWD_DATA: CrowdDensity[] = [
     coordinates: { lng: 39.887235, lat: 21.411856 },
     density_level: 'high',
     updated_at: new Date().toISOString(),
+    crowd_size: 80000,
+    occupancy_percentage: '90',
+    meta_data: {
+      density: '5.1',
+      capacity: 90000,
+      sections: []
+    }
   },
   {
     id: 7,
@@ -63,6 +105,13 @@ const MOCK_CROWD_DATA: CrowdDensity[] = [
     coordinates: { lng: 39.889124, lat: 21.414501 },
     density_level: 'medium',
     updated_at: new Date().toISOString(),
+    crowd_size: 120000,
+    occupancy_percentage: '70',
+    meta_data: {
+      density: '3.4',
+      capacity: 170000,
+      sections: []
+    }
   },
   {
     id: 8,
@@ -70,6 +119,13 @@ const MOCK_CROWD_DATA: CrowdDensity[] = [
     coordinates: { lng: 39.871952, lat: 21.423850 },
     density_level: 'critical',
     updated_at: new Date().toISOString(),
+    crowd_size: 150000,
+    occupancy_percentage: '98',
+    meta_data: {
+      density: '7.2',
+      capacity: 155000,
+      sections: []
+    }
   }
 ];
 
@@ -99,6 +155,35 @@ interface RouteData {
   adjusted_walking_speed?: string; // New field for adjusted walking speed based on crowd
   crowd_impact?: string; // New field for crowd impact assessment
 }
+
+// Hajj route distances and walking times
+const HAJJ_ROUTE_DATA = [
+  { start: 'Masjid al-Haram', destination: 'Mina', distance: '8.5 km', duration: '2 hours' },
+  { start: 'Mina', destination: 'Arafat', distance: '13 km', duration: '3 hours' },
+  { start: 'Arafat', destination: 'Muzdalifah', distance: '8 km', duration: '2 hours' },
+  { start: 'Muzdalifah', destination: 'Mina', distance: '4 km', duration: '1 hour' },
+  { start: 'Mina', destination: 'Jamaraat Bridge', distance: '3 km', duration: '30 minutes' },
+  { start: 'Jamaraat Bridge', destination: 'Masjid al-Haram', distance: '5 km', duration: '1 hour 15 minutes' },
+];
+
+// Helper function to get route data
+const getRouteData = (start: string, destination: string) => {
+  const routeData = HAJJ_ROUTE_DATA.find(
+    route => 
+      (route.start === start && route.destination === destination) ||
+      (route.start === destination && route.destination === start)
+  );
+  
+  if (routeData) {
+    if (routeData.start === start) {
+      return { distance: routeData.distance, duration: routeData.duration };
+    } else {
+      return { distance: routeData.distance, duration: routeData.duration };
+    }
+  }
+  
+  return { distance: 'Unknown', duration: 'Unknown' };
+};
 
 // Get walking path coordinates for route
 const getWalkingPathCoordinates = (start: string, destination: string): [number, number][] => {
@@ -729,18 +814,41 @@ export default function MapComponent({ crowdData = [] }: MapComponentProps) {
     setError('');
     
     try {
-      const response = await fetch(`/api/routes?start=${encodeURIComponent(startLocation)}&destination=${encodeURIComponent(endLocation)}`);
+      // Check if this is a standard Hajj route with known data
+      const routeInfo = getRouteData(startLocation, endLocation);
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to calculate route');
+      if (routeInfo.distance !== 'Unknown') {
+        // For standard routes, we can use our predefined data
+        const standardRouteData: RouteData = {
+          start: startLocation,
+          destination: endLocation,
+          distance: routeInfo.distance,
+          duration: routeInfo.duration,
+          congestion_level: getLocationDensity(endLocation) as any || 'low',
+          directions: [
+            `Start at ${startLocation}`,
+            `Follow the pilgrim path toward ${endLocation}`,
+            `The journey will take approximately ${routeInfo.duration} at normal walking speed`,
+            `Watch for signage and follow the crowd flow`,
+            `Arrive at ${endLocation}`
+          ]
+        };
+        
+        setRouteData(standardRouteData);
+        displayRouteOnMap(standardRouteData);
+      } else {
+        // For non-standard routes, use the API
+        const response = await fetch(`/api/routes?start=${encodeURIComponent(startLocation)}&destination=${encodeURIComponent(endLocation)}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to calculate route');
+        }
+        
+        const routeData = await response.json();
+        setRouteData(routeData);
+        displayRouteOnMap(routeData);
       }
-      
-      const routeData = await response.json();
-      setRouteData(routeData);
-      
-      // After getting the route data, display it on the map
-      displayRouteOnMap(routeData);
     } catch (err: any) {
       setError(err.message || 'Failed to calculate route. Please try again.');
       console.error(err);
@@ -1110,7 +1218,7 @@ export default function MapComponent({ crowdData = [] }: MapComponentProps) {
                 </button>
               </div>
               
-              {routeData && (
+              {routeData ? (
                 <div className="mt-6 bg-white dark:bg-slate-800 rounded-lg shadow p-4">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Route Information</h3>
@@ -1168,6 +1276,23 @@ export default function MapComponent({ crowdData = [] }: MapComponentProps) {
                       </div>
                     </div>
                     
+                    {/* Additional walking time guidance based on congestion */}
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 p-2 rounded text-xs">
+                      <p className="font-medium mb-1">Walking Time Estimate:</p>
+                      <p>Standard walking time: {routeData.duration}</p>
+                      {routeData.congestion_level === 'medium' && (
+                        <p>Current congestion may add 15-20 minutes to your journey.</p>
+                      )}
+                      {routeData.congestion_level === 'high' && (
+                        <p>Due to high congestion, add 30-45 minutes to your journey time.</p>
+                      )}
+                      {routeData.congestion_level === 'critical' && (
+                        <p className="text-red-600 dark:text-red-400 font-medium">Due to critical congestion, add 45-60 minutes to your journey time. Consider alternative routes if available.</p>
+                      )}
+                      <p className="mt-1 text-green-700 dark:text-green-400">Distance: {routeData.distance}</p>
+                      <p className="text-xs opacity-80 mt-1">The walk between {routeData.start} and {routeData.destination} is a standard Hajj route segment.</p>
+                    </div>
+                    
                     {routeData.pilgrim_count_range && (
                       <div>
                         <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Pilgrims in Area</div>
@@ -1201,6 +1326,141 @@ export default function MapComponent({ crowdData = [] }: MapComponentProps) {
                       </div>
                     </div>
                   </div>
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-2">
+                  <form onSubmit={handleCalculateRoute}>
+                    <div className="grid grid-cols-1 gap-3 mb-3">
+                      <div>
+                        <label htmlFor="start" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                          Your Current Location
+                        </label>
+                        <select
+                          id="start"
+                          value={startLocation}
+                          onChange={(e) => setStartLocation(e.target.value)}
+                          className="w-full rounded-md border-gray-300 shadow-sm py-2 px-3 bg-white dark:bg-gray-700 border dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        >
+                          <option value="">Select location</option>
+                          {LOCATION_OPTIONS.map((location) => {
+                            const density = getLocationDensity(location.name);
+                            return (
+                              <option key={`start-${location.name}`} value={location.name}>
+                                {location.name} {density !== 'unknown' ? `(${density})` : ''}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="destination" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                          Your Destination
+                        </label>
+                        <select
+                          id="destination"
+                          value={endLocation}
+                          onChange={(e) => setEndLocation(e.target.value)}
+                          className="w-full rounded-md border-gray-300 shadow-sm py-2 px-3 bg-white dark:bg-gray-700 border dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        >
+                          <option value="">Select destination</option>
+                          {LOCATION_OPTIONS.map((location) => {
+                            const density = getLocationDensity(location.name);
+                            return (
+                              <option key={`end-${location.name}`} value={location.name}>
+                                {location.name} {density !== 'unknown' ? `(${density})` : ''}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {error && (
+                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-2 rounded mb-4 text-xs">
+                        {error}
+                      </div>
+                    )}
+                    
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 p-2 rounded mb-3 text-xs">
+                      <p>Routes are based on official Hajj distance data and current crowd density levels. The map will display the optimal path with accurate walking times.</p>
+                    </div>
+                    
+                    {/* Quick Route Selection */}
+                    <div className="mb-3">
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">Quick Route Selection:</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStartLocation('Masjid al-Haram');
+                            setEndLocation('Mina');
+                          }}
+                          className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-xs py-1 px-2 rounded text-gray-700 dark:text-gray-300"
+                        >
+                          Masjid al-Haram → Mina
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStartLocation('Mina');
+                            setEndLocation('Arafat');
+                          }}
+                          className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-xs py-1 px-2 rounded text-gray-700 dark:text-gray-300"
+                        >
+                          Mina → Arafat
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStartLocation('Arafat');
+                            setEndLocation('Muzdalifah');
+                          }}
+                          className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-xs py-1 px-2 rounded text-gray-700 dark:text-gray-300"
+                        >
+                          Arafat → Muzdalifah
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStartLocation('Muzdalifah');
+                            setEndLocation('Mina');
+                          }}
+                          className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-xs py-1 px-2 rounded text-gray-700 dark:text-gray-300"
+                        >
+                          Muzdalifah → Mina
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStartLocation('Mina');
+                            setEndLocation('Jamaraat Bridge');
+                          }}
+                          className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-xs py-1 px-2 rounded text-gray-700 dark:text-gray-300"
+                        >
+                          Mina → Jamaraat Bridge
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStartLocation('Jamaraat Bridge');
+                            setEndLocation('Masjid al-Haram');
+                          }}
+                          className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-xs py-1 px-2 rounded text-gray-700 dark:text-gray-300"
+                        >
+                          Jamaraat → Masjid al-Haram
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-primary text-white font-medium py-2 px-4 rounded hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 text-sm"
+                    >
+                      {loading ? 'Calculating...' : 'Find Best Route'}
+                    </button>
+                  </form>
                 </div>
               )}
             </div>

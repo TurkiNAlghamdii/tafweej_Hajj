@@ -2,18 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function NavBar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   // After mounting, we can safely show the UI
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700 backdrop-blur-sm">
@@ -106,6 +113,13 @@ export default function NavBar() {
                 d="M4 6h16M4 12h16M4 18h16" 
               />
             </svg>
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+          >
+            Logout
           </button>
         </div>
       </div>

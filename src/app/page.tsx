@@ -1,9 +1,29 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function Home() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        router.replace('/login');
+      } else {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  if (loading) return null;
+
   return (
     <>
       <NavBar />
@@ -19,57 +39,40 @@ export default function Home() {
             Real-time crowd management and navigation for Hajj pilgrims
           </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
-          <Link href="/map" className="group">
-            <div className="card h-full border border-slate-200 hover:border-primary/30 dark:border-gray-700 dark:hover:border-primary-dark/30 flex flex-col items-center justify-center py-10 hover:-translate-y-1">
-              <div className="text-5xl mb-6 transform transition-transform group-hover:scale-110">🗺️</div>
-              <h2 className="text-xl font-semibold mb-3 text-slate-800 dark:text-white">Crowd Density Map</h2>
-              <p className="text-slate-600 dark:text-slate-400 text-center max-w-xs">
-                View real-time crowd density information across all Hajj sites
-              </p>
-              <div className="mt-4 inline-flex items-center text-primary dark:text-primary-dark text-sm font-medium">
-                <span>Explore Map</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 transform transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
+        <div className="flex justify-center w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl w-full">
+            <Link href="/map" className="group">
+              <div className="card h-full border border-slate-200 hover:border-primary/30 dark:border-gray-700 dark:hover:border-primary-dark/30 flex flex-col items-center justify-center py-10 hover:-translate-y-1">
+                <div className="text-5xl mb-6 transform transition-transform group-hover:scale-110">🗺️</div>
+                <h2 className="text-xl font-semibold mb-3 text-slate-800 dark:text-white">Crowd Density Map</h2>
+                <p className="text-slate-600 dark:text-slate-400 text-center max-w-xs">
+                  View real-time crowd density information across all Hajj sites
+                </p>
+                <div className="mt-4 inline-flex items-center text-primary dark:text-primary-dark text-sm font-medium">
+                  <span>Explore Map</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 transform transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </div>
               </div>
-            </div>
-          </Link>
-
-          <Link href="/routes" className="group">
-            <div className="card h-full border border-slate-200 hover:border-primary/30 dark:border-gray-700 dark:hover:border-primary-dark/30 flex flex-col items-center justify-center py-10 hover:-translate-y-1">
-              <div className="text-5xl mb-6 transform transition-transform group-hover:scale-110">🧭</div>
-              <h2 className="text-xl font-semibold mb-3 text-slate-800 dark:text-white">Route Suggestions</h2>
-              <p className="text-slate-600 dark:text-slate-400 text-center max-w-xs">
-                Get personalized routes to avoid congested areas
-              </p>
-              <div className="mt-4 inline-flex items-center text-primary dark:text-primary-dark text-sm font-medium">
-                <span>Plan Routes</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 transform transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
+            </Link>
+            <Link href="/alerts" className="group">
+              <div className="card h-full border border-slate-200 hover:border-primary/30 dark:border-gray-700 dark:hover:border-primary-dark/30 flex flex-col items-center justify-center py-10 hover:-translate-y-1">
+                <div className="text-5xl mb-6 transform transition-transform group-hover:scale-110">⚠️</div>
+                <h2 className="text-xl font-semibold mb-3 text-slate-800 dark:text-white">Safety Alerts</h2>
+                <p className="text-slate-600 dark:text-slate-400 text-center max-w-xs">
+                  Receive important safety notifications and guidance
+                </p>
+                <div className="mt-4 inline-flex items-center text-primary dark:text-primary-dark text-sm font-medium">
+                  <span>View Alerts</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 transform transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </div>
               </div>
-            </div>
-          </Link>
-
-          <Link href="/alerts" className="group">
-            <div className="card h-full border border-slate-200 hover:border-primary/30 dark:border-gray-700 dark:hover:border-primary-dark/30 flex flex-col items-center justify-center py-10 hover:-translate-y-1">
-              <div className="text-5xl mb-6 transform transition-transform group-hover:scale-110">⚠️</div>
-              <h2 className="text-xl font-semibold mb-3 text-slate-800 dark:text-white">Safety Alerts</h2>
-              <p className="text-slate-600 dark:text-slate-400 text-center max-w-xs">
-                Receive important safety notifications and guidance
-              </p>
-              <div className="mt-4 inline-flex items-center text-primary dark:text-primary-dark text-sm font-medium">
-                <span>View Alerts</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 transform transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          </div>
         </div>
-
         <div className="mt-16 text-center">
           <p className="mb-6 text-slate-600 dark:text-slate-400 max-w-2xl">
             Bringing the latest technology to enhance safety and comfort during Hajj
